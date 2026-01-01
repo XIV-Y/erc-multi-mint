@@ -1,30 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ethers } from "ethers";
 import WalletConnect from "./components/WalletConnect.tsx";
 import MintForm from "./components/MintForm.tsx";
 
 function App() {
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
-  const [signer, setSigner] = useState(null);
+  const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [address, setAddress] = useState("");
-  const [chainId, setChainId] = useState(null);
+  const [chainId, setChainId] = useState<bigint | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  useEffect(() => {
-    if ((window as any).ethereum) {
-      const initProvider = new ethers.BrowserProvider((window as any).ethereum);
-      setProvider(initProvider);
-    }
-  }, []);
-
   const connectWallet = async () => {
-    if (!provider) {
+    if (!(window as any).ethereum) {
       alert("MetaMask is not installed");
       return;
     }
 
     try {
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
       const accounts = await (window as any).ethereum.request({
         method: "eth_requestAccounts",
       });

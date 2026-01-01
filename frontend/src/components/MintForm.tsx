@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { ethers } from "ethers";
 
@@ -6,7 +5,12 @@ const CONTROLLER_ABI = [
   "function multiMint(address to, uint256 erc721Count, uint256[] memory erc1155Ids, uint256[] memory erc1155Amounts) external",
 ];
 
-function MintForm({ signer, userAddress }: any) {
+interface MintFormProps {
+  signer: ethers.Signer;
+  userAddress: string;
+}
+
+function MintForm({ signer, userAddress }: MintFormProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -30,7 +34,7 @@ function MintForm({ signer, userAddress }: any) {
         CONTROLLER_ABI,
         signer
       );
-      const network = await signer.provider.getNetwork();
+      const network = await signer.provider!.getNetwork();
 
       const domain = {
         name: "MultiMintController",
@@ -67,7 +71,7 @@ function MintForm({ signer, userAddress }: any) {
 
       setMessage((prev) => prev + `\nTX: ${tx.hash.slice(0, 20)}...`);
       const receipt = await tx.wait();
-      setMessage((prev) => prev + `\nSuccess! Block: ${receipt.blockNumber}`);
+      setMessage((prev) => prev + `\nSuccess! Block: ${receipt!.blockNumber}`);
     } catch (error) {
       setMessage(`Error: ${error}`);
     } finally {

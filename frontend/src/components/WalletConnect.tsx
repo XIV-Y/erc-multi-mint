@@ -1,4 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+interface WalletConnectProps {
+  isConnected: boolean;
+  address: string;
+  chainId: bigint | null;
+  onConnect: () => void;
+  onDisconnect: () => void;
+}
 
 function WalletConnect({
   isConnected,
@@ -6,7 +12,7 @@ function WalletConnect({
   chainId,
   onConnect,
   onDisconnect,
-}: any) {
+}: WalletConnectProps) {
   return (
     <div
       style={{
@@ -35,7 +41,7 @@ function WalletConnect({
             <strong>Address:</strong> {address}
           </p>
           <p>
-            <strong>Chain ID:</strong> {chainId}
+            <strong>Chain ID:</strong> {chainId?.toString()}
           </p>
           <button
             onClick={onDisconnect}
