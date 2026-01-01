@@ -23,7 +23,7 @@ function App() {
       });
       const signer = await provider.getSigner();
       const network = await provider.getNetwork();
-      console.log(network);
+
       setAddress(accounts[0]);
       setSigner(signer);
       setChainId(network.chainId);

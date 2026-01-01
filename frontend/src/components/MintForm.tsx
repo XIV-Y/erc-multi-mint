@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { ethers } from "ethers";
 
 const CONTROLLER_ABI = [
-  "function multiMint(address to, uint256 erc721Count, uint256[] memory erc1155Ids, uint256[] memory erc1155Amounts) external",
+  "function multiMint(address to, uint256 erc721Count, uint256[] memory erc1155Ids, uint256[] memory erc1155Amounts, bytes memory signature) external",
 ];
 
 interface MintFormProps {
@@ -20,8 +21,8 @@ function MintForm({ signer, userAddress }: MintFormProps) {
 
   const sampleData = {
     erc721Count: 2,
-    erc1155Ids: [1, 2, 3],
-    erc1155Amounts: [5, 10, 15],
+    erc1155Ids: [1, 2],
+    erc1155Amounts: [1, 2],
   };
 
   const signAndMint = async () => {
@@ -66,7 +67,8 @@ function MintForm({ signer, userAddress }: MintFormProps) {
         userAddress,
         sampleData.erc721Count,
         sampleData.erc1155Ids,
-        sampleData.erc1155Amounts
+        sampleData.erc1155Amounts,
+        signature
       );
 
       setMessage((prev) => prev + `\nTX: ${tx.hash.slice(0, 20)}...`);
