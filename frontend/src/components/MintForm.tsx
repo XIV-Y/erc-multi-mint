@@ -20,9 +20,9 @@ function MintForm({ signer, userAddress }: MintFormProps) {
     "0x0000000000000000000000000000000000000000";
 
   const sampleData = {
-    erc721Count: 2,
-    erc1155Ids: [1, 2],
-    erc1155Amounts: [1, 2],
+    erc721Count: 10,
+    erc1155Ids: [],
+    erc1155Amounts: [],
   };
 
   const signAndMint = async () => {
