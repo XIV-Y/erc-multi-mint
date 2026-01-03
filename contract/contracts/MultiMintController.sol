@@ -10,7 +10,7 @@ contract MultiMintController {
 
     MyERC721 public erc721Contract;
     MyERC1155 public erc1155Contract;
-    address public authorizedSigner;
+    address public authorizedSigner; // 署名検証用：このアドレスの署名のみ有効
 
     event MultiMintExecuted(
         address indexed to,
@@ -22,13 +22,16 @@ contract MultiMintController {
     event ERC721Minted(address indexed to, uint256 indexed tokenId);
     event ERC1155Minted(address indexed to, uint256[] ids, uint256[] amounts);
 
+    // EIP-712署名検証用のハッシュ定義
     bytes32 private constant MULTIMINT_TYPEHASH =
         keccak256(
             "MultiMint(address to,uint256 erc721Count,uint256[] erc1155Ids,uint256[] erc1155Amounts)"
         );
 
+    // EIP-712ドメイン識別子
     bytes32 private immutable DOMAIN_SEPARATOR;
 
+    // リプレイ攻撃防止：使用済み署名を記録
     mapping(bytes32 => bool) public usedSignatures;
 
     constructor(address _erc721, address _erc1155, address _authorizedSigner) {
@@ -36,6 +39,7 @@ contract MultiMintController {
         erc1155Contract = MyERC1155(_erc1155);
         authorizedSigner = _authorizedSigner;
 
+        // EIP-712ドメインセパレータを生成（チェーンID、コントラクトアドレスで一意）
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256(
@@ -58,6 +62,7 @@ contract MultiMintController {
     ) external {
         require(erc1155Ids.length == erc1155Amounts.length, "Length mismatch");
 
+        // EIP-712署名検証：パラメータからハッシュを生成
         bytes32 structHash = keccak256(
             abi.encode(
                 MULTIMINT_TYPEHASH,
@@ -68,19 +73,24 @@ contract MultiMintController {
             )
         );
 
+        // EIP-712フォーマットでハッシュを結合
         bytes32 hash = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, structHash));
         
+        // リプレイ攻撃防止：同じ署名は1回のみ有効
         require(!usedSignatures[hash], "Signature already used");
         usedSignatures[hash] = true;
 
+        // 署名からアドレスを復元し、authorizedSignerと一致するか検証
         address signer = hash.recover(signature);
         require(signer == authorizedSigner, "Invalid signature");
 
+        // ERC721を指定個数mint
         for (uint256 i = 0; i < erc721Count; i++) {
             uint256 tokenId = erc721Contract.mint(to);
             emit ERC721Minted(to, tokenId);
         }
 
+        // ERC1155を各ID・数量でmint
         for (uint256 i = 0; i < erc1155Ids.length; i++) {
             erc1155Contract.mint(to, erc1155Ids[i], erc1155Amounts[i]);
         }

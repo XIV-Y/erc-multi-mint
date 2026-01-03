@@ -20,9 +20,9 @@ function MintForm({ signer, userAddress }: MintFormProps) {
     "0x0000000000000000000000000000000000000000";
 
   const sampleData = {
-    erc721Count: 10,
-    erc1155Ids: [],
-    erc1155Amounts: [],
+    erc721Count: 2,
+    erc1155Ids: [4], // 連番になるように書き換える
+    erc1155Amounts: [1],
   };
 
   const signAndMint = async () => {
@@ -30,13 +30,16 @@ function MintForm({ signer, userAddress }: MintFormProps) {
       setLoading(true);
       setMessage("Processing...");
 
+      // コントラクトの取得
       const contract = new ethers.Contract(
         CONTROLLER_ADDRESS,
         CONTROLLER_ABI,
         signer
       );
+
       const network = await signer.provider!.getNetwork();
 
+      // EIP-712署名のドメイン情報（コントラクトと一致させる（DOMAIN_SEPARATOR））
       const domain = {
         name: "MultiMintController",
         version: "1",
@@ -44,6 +47,7 @@ function MintForm({ signer, userAddress }: MintFormProps) {
         verifyingContract: CONTROLLER_ADDRESS,
       };
 
+      // EIP-712署名のデータ構造定義（MULTIMINT_TYPEHASH）
       const types = {
         MultiMint: [
           { name: "to", type: "address" },
@@ -53,6 +57,7 @@ function MintForm({ signer, userAddress }: MintFormProps) {
         ],
       };
 
+      // 署名するデータ
       const value = {
         to: userAddress,
         erc721Count: sampleData.erc721Count,
@@ -63,6 +68,7 @@ function MintForm({ signer, userAddress }: MintFormProps) {
       const signature = await signer.signTypedData(domain, types, value);
       setMessage(`Signed: ${signature.slice(0, 20)}...`);
 
+      // 署名付きでコントラクトのmultiMint関数を実行
       const tx = await contract.multiMint(
         userAddress,
         sampleData.erc721Count,
